@@ -4,16 +4,17 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as basicAuth from 'express-basic-auth';
+import helmet from 'helmet';
 
-import AppDevelopment from './app-development';
+import AppDevelopmentEnvironment from './app-development.environment';
 
-export default class AppProduction extends AppDevelopment {
+export default class AppProductionEnvironment extends AppDevelopmentEnvironment {
   private readonly basicAuthOptions: any;
   private readonly SWAGGER_USERNAME: string;
   private readonly SWAGGER_PASSWORD: string;
   constructor(app: NestExpressApplication, configService: ConfigService) {
     super(app, configService);
-    this.logger = new Logger(AppProduction.name);
+    this.logger = new Logger(AppProductionEnvironment.name);
     this.SWAGGER_USERNAME = this.configService.get<string>(
       'swagger.username',
       'administrator',
@@ -52,9 +53,11 @@ export default class AppProduction extends AppDevelopment {
     super.setLogLevel();
     super.enableCompression();
     super.enableCors();
+
     this.enableSwaggerBasicAuth();
     this.setupDocument();
     this.handleUncaughtException();
+    this.enableHelmet();
     this.logger.warn(
       '⚠️ Initialized production environment. Please check your production configurations again!',
     );
@@ -71,7 +74,7 @@ export default class AppProduction extends AppDevelopment {
     });
   }
 
-  initializeSentry(): void {
-    this.logger.debug('Initialized sentry');
+  enableHelmet(): void {
+    this.app.use(helmet());
   }
 }

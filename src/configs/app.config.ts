@@ -7,6 +7,6 @@ export default registerAs('app', () => ({
   port: process.env.PORT,
   name: process.env.NAME,
   apiVersion: process.env.API_VERSION,
-  compression: process.env.COMPRESSION_THRESHOLD,
+  compressionThreshold: process.env.COMPRESSION_THRESHOLD,
   logLevels: process.env.LOG_LEVELS,
 }));

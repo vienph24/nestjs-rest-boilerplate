@@ -8,8 +8,8 @@ import { json, Request, Response, urlencoded } from 'express';
 
 import { IAppEnvironment } from '../interfaces/app-environment.interface';
 
-export default class AppDevelopment implements IAppEnvironment {
-  protected logger = new Logger(AppDevelopment.name);
+export default class AppDevelopmentEnvironment implements IAppEnvironment {
+  protected logger = new Logger(AppDevelopmentEnvironment.name);
   readonly corsOptions: CorsOptions;
   readonly compressionOptions: any;
   readonly documentOptions: any;
@@ -18,6 +18,8 @@ export default class AppDevelopment implements IAppEnvironment {
   readonly APP_NAME: string;
   readonly SWAGGER_PATH: string;
   protected LOG_LEVELS: LogLevel[];
+  readonly CORS_ORIGIN: string;
+  readonly CORS_CREDENTIALS: boolean;
 
   readonly app: NestExpressApplication;
   readonly configService: ConfigService;
@@ -32,13 +34,18 @@ export default class AppDevelopment implements IAppEnvironment {
     this.API_VERSION = this.configService.get<string>('app.apiVersion', 'v1');
     this.SWAGGER_PATH = this.configService.get<string>('swagger.path', 'specs');
     this.LOG_LEVELS = ['error', 'log', 'verbose', 'warn', 'debug'];
+    this.CORS_ORIGIN = this.configService.get<string>('cors.origin', '*');
+    this.CORS_CREDENTIALS = this.configService.get<boolean>(
+      'cors.credentials',
+      false,
+    );
 
     /**
      * CORS configurations
      */
     this.corsOptions = {
-      origin: '*',
-      credentials: false,
+      origin: this.CORS_ORIGIN,
+      credentials: this.CORS_CREDENTIALS,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
       allowedHeaders: ['Content-Type', 'Authorization', 'x-no-compression'],
     };
@@ -47,7 +54,10 @@ export default class AppDevelopment implements IAppEnvironment {
      * Compression configurations
      */
     this.compressionOptions = {
-      threshold: this.configService.get<number>('app.compression', 100),
+      threshold: this.configService.get<number>(
+        'app.compressionThreshold',
+        100,
+      ),
       filter: (req: Request, res: Response) => {
         if (req.headers['x-no-compression']) return false;
         return compression.filter(req, res);
@@ -64,12 +74,12 @@ export default class AppDevelopment implements IAppEnvironment {
       },
       setup: {
         explorer: true,
-        customSiteTitle: 'Admin Control Panel API - TrustPayID',
+        customSiteTitle: 'REST API Boilerplate',
       },
     };
     this.documentBuilder = new DocumentBuilder()
-      .setTitle('Admin Control Panel API')
-      .setDescription('Admin Control Panel API - TrustPayID')
+      .setTitle('REST API Boilerplate')
+      .setDescription('The REST API Boilerplate description')
       .setVersion(this.API_VERSION);
   }
   initialize(): void {
